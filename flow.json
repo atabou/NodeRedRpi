@@ -1,1 +1,128 @@
-[]
+[
+    {
+        "id": "5ac879ede39e3ebf",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "84fa85452583911a",
+        "type": "websocket-listener",
+        "path": "/ws/receiveMessage",
+        "wholemsg": "false"
+    },
+    {
+        "id": "3997705916b9cc48",
+        "type": "websocket-listener",
+        "path": "/ws/publishMessage",
+        "wholemsg": "false"
+    },
+    {
+        "id": "60a852ff7ba909ef",
+        "type": "websocket out",
+        "z": "5ac879ede39e3ebf",
+        "name": "",
+        "server": "84fa85452583911a",
+        "client": "",
+        "x": 990,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "17d92be6772301cb",
+        "type": "function",
+        "z": "5ac879ede39e3ebf",
+        "name": "func",
+        "func": "\nvar x = {\n\n    barvalues: [],\n    linevalues: []\n\n};\n\nfor (var i = 0; i < msg.payload[0][0].length; i++) {\n\n    x.linevalues.push({\n        x: msg.payload[0][0][i][0],\n        y: msg.payload[0][0][i][1],\n        markerBorderColor: msg.payload[0][1][i],\n        lineColor: msg.payload[0][1][i]\n    });\n\n}\n\nfor (var i = 0; i < msg.payload[1][0].length; i++) {\n\n    x.barvalues.push({\n        label: msg.payload[1][0][i],\n        y: msg.payload[1][1][i],\n        color: msg.payload[1][2][i]\n    });\n\n}\n\nnode.log(JSON.stringify(x));\n\nreturn {payload: x};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 730,
+        "y": 420,
+        "wires": [
+            [
+                "60a852ff7ba909ef"
+            ]
+        ]
+    },
+    {
+        "id": "0538ae6e7ae13eb3",
+        "type": "http in",
+        "z": "5ac879ede39e3ebf",
+        "name": "",
+        "url": "/charts",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 490,
+        "y": 640,
+        "wires": [
+            [
+                "ce26db7106687cf8"
+            ]
+        ]
+    },
+    {
+        "id": "ce26db7106687cf8",
+        "type": "template",
+        "z": "5ac879ede39e3ebf",
+        "name": "WebpageChart",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<head>\n<script src=\"https://canvasjs.com/assets/script/canvasjs.min.js\"></script>\n<script type=\"text/javascript\">\n\nvar barvalues = [];\n\nvar linevalues = [];\n\nvar ws = new WebSocket(\"ws://192.168.86.26:1880/ws/receiveMessage\");\n\nws.onmessage = (e) => {\n\t\n\tvar data = JSON.parse(e.data);\n\n\t// Empty the array inplace in order to not change reference.\n\n\tbarvalues.length = 0;\n\n\tfor(var i=0; i<data.barvalues.length; i++){\n\t\tbarvalues.push(data.barvalues[i]);\n\t}\n\t\n\t// Empty the array inplace in order to not change reference.\n\n\tlinevalues.length = 0;\n\n\tfor(var i=0; i<data.linevalues.length; i++){\n\t\tlinevalues.push(data.linevalues[i]);\n\t}\n\n};\n\nwindow.onload = () => {\n\n\tvar barchart = new CanvasJS.Chart(\"barchart\", {\n\t\t\t\n\t\ttitle: {\n\t\t\n\t\t\ttext: \"Time Spent as Master (Last 30s)\"              \n\t\t\n\t\t},\n\t\t\n\t\taxisX: {\n\t\t\n\t\t\ttitle: \"Swarm ID\"\n\t\t\n\t\t},\n\t\t\n\t\taxisY: {\n\t\t\n\t\t\ttitle: \"percentage (%)\",\n\t\t\tincludeZero: false,\n\t\t\tviewportMinimum: 0,\n\t\t\tviewportMaximum: 30\n\t\t\n\t\t},\n\t\t\n\t\tdata: [{\n\t\t\t// Change type to \"doughnut\", \"line\", \"splineArea\", etc.\n\t\t\ttype: \"column\",\n\t\t\tdataPoints: barvalues\n\t\t}]\n\n\t});\n\n\tvar linechart =  new CanvasJS.Chart(\"linechart\", {\n\n\t\ttitle:{\n\t\t\ttext: \"Value of the Master (Last 30s)\"              \n\t\t},\n\n\t\taxisX: {\n\t\t\ttitle: \"time elapsed (s)\",\n\t\t\tincludeZero: false,\n\t\t\tviewportMinimum: -30,\n\t\t\tviewportMaximum: 0\n\t\t},\n\t\t\n\t\taxisY: {\n\t\t\ttitle: \"percentage (%)\",\n\t\t\tincludeZero: false,\n\t\t\tminimum: 0,\n\t\t\tmaximum: 1024,\n\t\t\tviewportMinimum: 0,\n\t\t\tviewportMaximum: 1024,\n\t\t},\n\t\t\n\t\tdata: [{\n\t\t\ttype: \"line\",\n\t\t\tdataPoints: linevalues\n\t\t}]\n\n\t});\n\n\tvar i = -30\n\n\tvar updateChart = () => {\n\n\t\tbarchart.render();\n\t\tlinechart.render();\n\n\t};\n\n\tupdateChart();\n\n\tsetInterval(updateChart, 500);\n\n}\n\n</script>\n</head>\n<body>\n<div id=\"barchart\" style=\"border-style: groove; height: 400px; width: 100%;\"></div>\n<div id=\"linechart\" style=\"border-style: groove; height: 400px; width: 100%;\"></div>\n</body>",
+        "output": "str",
+        "x": 700,
+        "y": 640,
+        "wires": [
+            [
+                "b1a3e00cb9233cbb"
+            ]
+        ]
+    },
+    {
+        "id": "b1a3e00cb9233cbb",
+        "type": "http response",
+        "z": "5ac879ede39e3ebf",
+        "name": "response 200",
+        "statusCode": "200",
+        "headers": {},
+        "x": 920,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "0c569f7a6ad74bdb",
+        "type": "http in",
+        "z": "5ac879ede39e3ebf",
+        "name": "",
+        "url": "/submit-reading",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 500,
+        "y": 420,
+        "wires": [
+            [
+                "17d92be6772301cb",
+                "f1c99578a9e6b27c"
+            ]
+        ]
+    },
+    {
+        "id": "f1c99578a9e6b27c",
+        "type": "http response",
+        "z": "5ac879ede39e3ebf",
+        "name": "response 200",
+        "statusCode": "200",
+        "headers": {},
+        "x": 740,
+        "y": 500,
+        "wires": []
+    }
+]
