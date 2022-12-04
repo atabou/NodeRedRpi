@@ -35,7 +35,7 @@
         "type": "function",
         "z": "5ac879ede39e3ebf",
         "name": "func",
-        "func": "\nvar x = {\n\n    barvalues: [],\n    linevalues: []\n\n};\n\nfor (var i = 0; i < msg.payload[0][0].length; i++) {\n\n    x.linevalues.push({\n        x: msg.payload[0][0][i][0],\n        y: msg.payload[0][0][i][1],\n        markerBorderColor: msg.payload[0][1][i],\n        lineColor: msg.payload[0][1][i]\n    });\n\n}\n\nfor (var i = 0; i < msg.payload[1][0].length; i++) {\n\n    x.barvalues.push({\n        label: msg.payload[1][0][i],\n        y: msg.payload[1][1][i],\n        color: msg.payload[1][2][i]\n    });\n\n}\n\nnode.log(JSON.stringify(x));\n\nreturn {payload: x};",
+        "func": "\nvar x = {\n\n    barvalues: [],\n    linevalues: []\n\n};\n\nfor (var i = 0; i < msg.payload[0][0].length; i++) {\n\n    x.linevalues.push({\n        x: msg.payload[0][0][i][0],\n        y: msg.payload[0][0][i][1],\n        markerBorderColor: msg.payload[0][1][i],\n        lineColor: msg.payload[0][1][i]\n    });\n\n}\n\nfor (var i = 0; i < msg.payload[1][0].length; i++) {\n\n    x.barvalues.push({\n        label: msg.payload[1][0][i],\n        y: msg.payload[1][1][i],\n        color: msg.payload[1][2][i]\n    });\n\n}\n\nreturn {payload: x};",
         "outputs": 1,
         "noerr": 0,
         "initialize": "",
